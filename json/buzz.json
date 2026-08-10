@@ -39,7 +39,7 @@
             "type": "warning"
         },
         {
-            "text": "Buzz is used through its desktop app or buzz-cli. Point the client (BUZZ_RELAY_URL) at ws://<container-ip>:3000, or wss://<domain> behind your own reverse proxy.",
+            "text": "Buzz is used through its desktop app or buzz-cli. Without var_domain, point the client (BUZZ_RELAY_URL) at ws://<container-ip>:3000. With var_domain set, tenancy is host-scoped: the relay answers only under that hostname, so clients must use wss://<domain> through your reverse proxy — bare-IP requests return 404.",
             "type": "info"
         },
         {

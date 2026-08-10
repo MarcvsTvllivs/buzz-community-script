@@ -30,6 +30,25 @@ same command again later to update: it tracks upstream `relay-v*` tags, takes a
 `pg_dump` safety backup, rebuilds, migrates, and verifies `/_readiness` before
 reporting success.
 
+### Fully unattended (no TTY — proven on PVE 9.2.10)
+
+```bash
+ssh root@<pve-host> 'export TERM=xterm PHS_SILENT=1 mode=default \
+  var_ctid=603 var_hostname=buzz \
+  var_net=10.13.37.33/24 var_gateway=10.13.37.1 \
+  var_container_storage=local-zfs var_template_storage=local \
+  var_domain=buzz.example.com \
+  COMMUNITY_SCRIPTS_URL=https://raw.githubusercontent.com/MarcvsTvllivs/buzz-community-script/main; \
+  bash <(curl -fsSL https://raw.githubusercontent.com/MarcvsTvllivs/buzz-community-script/main/ct/buzz.sh)'
+```
+
+- `TERM` must name a real terminfo entry — `dumb` dies at the first `clear`.
+- `mode=default` skips the whiptail menu; `PHS_SILENT=1` auto-answers auxiliary prompts.
+- `COMMUNITY_SCRIPTS_URL` points the engine at this repo for `install/buzz-install.sh`
+  when running via curl/tarball (no git origin to detect), and is baked into the
+  container's `/usr/bin/update` shim so later `update` runs resolve here too.
+- Omit `var_net`/`var_gateway` for DHCP; omit `var_domain` for plain `ws://<ip>:3000`.
+
 ### Unattended / preseeded values (`app_vars`)
 
 | Variable | Meaning | Default |

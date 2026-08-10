@@ -120,5 +120,11 @@ description
 msg_ok "Completed Successfully!\n"
 echo -e "${CREATING}${GN}${APP} setup has been successfully initialized!${CL}"
 echo -e "${INFO}${YW}Point the Buzz desktop app (BUZZ_RELAY_URL) at:${CL}"
-echo -e "${GATEWAY}${BGN}ws://${IP}:3000${CL}"
+# Tenancy is host-scoped: with var_domain set, the relay answers only under
+# that hostname (bare-IP requests 404), so print the URL that actually works.
+if [[ -n "${var_domain:-}" ]]; then
+  echo -e "${GATEWAY}${BGN}wss://${var_domain}${CL} ${YW}(via your reverse proxy — the relay only answers under this hostname)${CL}"
+else
+  echo -e "${GATEWAY}${BGN}ws://${IP}:3000${CL}"
+fi
 echo -e "${INFO}${YW}If no owner key was supplied, the generated owner identity is in /opt/buzz_data/config/owner-key.txt inside the container.${CL}"
