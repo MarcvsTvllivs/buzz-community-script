@@ -1,0 +1,78 @@
+{
+    "name": "Buzz",
+    "slug": "buzz",
+    "categories": [
+        22,
+        20
+    ],
+    "date_created": "2026-08-11",
+    "type": "ct",
+    "updateable": true,
+    "privileged": false,
+    "interface_port": 3000,
+    "documentation": "https://github.com/block/buzz/blob/main/ARCHITECTURE.md",
+    "website": "https://github.com/block/buzz",
+    "repository": "https://github.com/block/buzz",
+    "logo": "https://cdn.jsdelivr.net/gh/block/buzz@main/desktop/src-tauri/icons/128x128.png",
+    "description": "Buzz is a self-hostable workspace where humans and AI agents share the same rooms. It is built on a Nostr relay: every message, reaction, workflow step, review approval, and git event is a signed event in one audit log. The relay serves WebSocket + REST on one port, backed by PostgreSQL (events + full-text search), Redis (pub/sub, presence), and MinIO (Blossom media storage), with native git hosting.",
+    "install_methods": [
+        {
+            "type": "default",
+            "script": "ct/buzz.sh",
+            "config_path": "/opt/buzz_data/config/buzz.env",
+            "resources": {
+                "cpu": 4,
+                "ram": 8192,
+                "hdd": 30,
+                "os": "Debian",
+                "version": "13"
+            }
+        }
+    ],
+    "default_credentials": {
+        "username": null,
+        "password": null
+    },
+    "notes": [
+        {
+            "text": "Buzz is pre-1.0 software under heavy development. The installer builds the relay from source (relay-v tags, no server release artifacts exist upstream); first install and updates compile Rust and can take 30+ minutes.",
+            "type": "warning"
+        },
+        {
+            "text": "Buzz is used through its desktop app or buzz-cli. Point the client (BUZZ_RELAY_URL) at ws://<container-ip>:3000, or wss://<domain> behind your own reverse proxy.",
+            "type": "info"
+        },
+        {
+            "text": "Closed-relay mode is the default. If you did not supply var_owner_pubkey, an owner keypair was generated: import the secret key from /opt/buzz_data/config/owner-key.txt (root-only, inside the container) into your Buzz client, then delete the file. Add members with: buzz-admin add-member --pubkey <npub-or-hex>.",
+            "type": "warning"
+        },
+        {
+            "text": "RELAY_URL is the community's identity authority — changing the domain/IP after first start can re-scope tenant data. Decide the final address (set var_domain for reverse-proxy deployments) before first start.",
+            "type": "warning"
+        },
+        {
+            "text": "PostgreSQL, Redis and MinIO listen on loopback only. The relay's health (8080) and metrics (9102) endpoints bind all container interfaces — firewall them if the container is reachable from untrusted networks. Authenticated web-UI features need HTTPS (secure context); the desktop app works over plain ws:// on a LAN.",
+            "type": "info"
+        }
+    ],
+    "app_vars": [
+        {
+            "name": "var_domain",
+            "label": "Public domain (TLS terminated at your reverse proxy)",
+            "type": "text",
+            "default": ""
+        },
+        {
+            "name": "var_owner_pubkey",
+            "label": "Owner Nostr public key (64-char hex; generated if empty)",
+            "type": "text",
+            "default": ""
+        },
+        {
+            "name": "var_relay_open",
+            "label": "Open relay (no membership required)",
+            "type": "boolean",
+            "default": "no"
+        }
+    ]
+}
