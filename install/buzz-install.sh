@@ -78,10 +78,13 @@ for _ in {1..30}; do
   curl -fsS -m 2 http://127.0.0.1:9000/minio/health/live >/dev/null 2>&1 && break
   sleep 2
 done
+curl -fsS -m 2 http://127.0.0.1:9000/minio/health/live >/dev/null
 # Credentials via environment, not argv, so they never appear in process lists.
+# --config-dir: the client derives its config dir from the binary name, and
+# ~/.mcli is already taken by fetch_and_deploy_gh_release's version file.
 export MC_HOST_local="http://${S3_ACCESS_KEY}:${S3_SECRET_KEY}@127.0.0.1:9000"
-$STD mcli mb --ignore-existing local/buzz-media
-$STD mcli anonymous set none local/buzz-media
+$STD mcli --config-dir /root/.config/mcli mb --ignore-existing local/buzz-media
+$STD mcli --config-dir /root/.config/mcli anonymous set none local/buzz-media
 unset MC_HOST_local
 msg_ok "Created Media Bucket"
 
