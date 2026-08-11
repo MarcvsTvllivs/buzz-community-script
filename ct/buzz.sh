@@ -11,9 +11,9 @@ source "$_cs_boot" 2>/dev/null || source <(curl -fsSL "${COMMUNITY_SCRIPTS_CORE_
 
 APP="Buzz"
 var_tags="${var_tags:-chat;nostr;ai}"
-var_cpu="${var_cpu:-4}"
-var_ram="${var_ram:-8192}"
-var_disk="${var_disk:-30}"
+var_cpu="${var_cpu:-2}"
+var_ram="${var_ram:-4096}"
+var_disk="${var_disk:-20}"
 var_os="${var_os:-debian}"
 var_version="${var_version:-13}"
 #var_arm64="${var_arm64:-no}" # unset = ask the user; set yes/no only when verified
@@ -73,11 +73,19 @@ function update_script() {
 
   msg_info "Building Buzz Server (Patience)"
   cd /opt/buzz
-  $STD cargo build --release --locked -p buzz-relay --bin buzz-relay -p buzz-admin --bin buzz-admin -p buzz-pair-relay --bin buzz-pair-relay
+  # Build parallelism scales to the memory actually granted (release rustc
+  # jobs peak ~1.5 GB each). Raise the container's CPU/RAM cap before an
+  # update for a faster rebuild; the defaults are sized for production, not
+  # for the compiler.
+  JOBS=$(($(free -m | awk '/^Mem:/{print $2}') / 1536))
+  ((JOBS < 1)) && JOBS=1
+  ((JOBS > $(nproc))) && JOBS=$(nproc)
+  $STD cargo build --release --locked -j "${JOBS}" -p buzz-relay --bin buzz-relay -p buzz-admin --bin buzz-admin -p buzz-pair-relay --bin buzz-pair-relay
   msg_ok "Built Buzz Server"
 
   msg_info "Building Web Bundles"
   export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+  export NODE_OPTIONS="--max-old-space-size=2048"
   $STD corepack enable
   $STD pnpm install --frozen-lockfile --filter buzz-web --filter buzz-admin-web
   $STD pnpm -C web build

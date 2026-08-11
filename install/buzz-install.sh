@@ -99,11 +99,18 @@ fetch_and_deploy_gh_tag "buzz" "block/buzz" "${RELEASE}" "/opt/buzz"
 
 msg_info "Building Buzz Server (Patience)"
 cd /opt/buzz
-$STD cargo build --release --locked -p buzz-relay --bin buzz-relay -p buzz-admin --bin buzz-admin -p buzz-pair-relay --bin buzz-pair-relay
+# Build parallelism scales to the memory actually granted (release rustc jobs
+# peak ~1.5 GB each): 4 GB default -> 2 jobs. Granting more CPU/RAM at
+# creation widens the build automatically.
+JOBS=$(($(free -m | awk '/^Mem:/{print $2}') / 1536))
+((JOBS < 1)) && JOBS=1
+((JOBS > $(nproc))) && JOBS=$(nproc)
+$STD cargo build --release --locked -j "${JOBS}" -p buzz-relay --bin buzz-relay -p buzz-admin --bin buzz-admin -p buzz-pair-relay --bin buzz-pair-relay
 msg_ok "Built Buzz Server"
 
 msg_info "Building Web Bundles"
 export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+export NODE_OPTIONS="--max-old-space-size=2048"
 $STD corepack enable
 $STD pnpm install --frozen-lockfile --filter buzz-web --filter buzz-admin-web
 $STD pnpm -C web build

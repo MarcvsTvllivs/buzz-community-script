@@ -24,6 +24,11 @@ cd buzz-community-script
 bash ct/buzz.sh
 ```
 
+Defaults are production-sized — **2 vCPU / 4 GB RAM / 20 GB disk** — and the
+source build scales its parallelism to whatever CPU/RAM the container actually
+has, so granting more (at creation, or `pct set` before an update) just makes
+rebuilds faster.
+
 The community-scripts `core` engine resolves `install/buzz-install.sh` from this
 checkout automatically (or from this repo's raw URL via the git origin). Run the
 same command again later to update: it tracks upstream `relay-v*` tags, takes a
