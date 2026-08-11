@@ -156,9 +156,14 @@ print("nsec1" + "".join(CH[x] for x in d) + "".join(CH[(chk >> 5 * (5 - i)) & 31
 ' | sed 's/^/Secret key (nsec): /' >>/opt/buzz_data/config/owner-key.txt
   cat <<EOF >>/opt/buzz_data/config/owner-key.txt
 This keypair owns this Buzz community (RELAY_OWNER_PUBKEY).
-Paste the "Secret key (nsec)" value into the Buzz desktop app's key import,
-verify you can sign in, then delete this file. It is not needed by the relay
-at runtime.
+In the Buzz desktop app: paste the "Secret key (nsec)" value into the key
+import, then Add community -> "Join an existing community" -> enter:
+ws://${LOCAL_IP}:3000
+(type the ws:// scheme; the form assumes wss:// for bare hostnames — use your
+domain instead once you serve this relay through a reverse proxy).
+Do not use "Create": that is Builderlab's hosted flow; this relay already is
+your community. Verify you can sign in, then delete this file. It is not
+needed by the relay at runtime.
 EOF
 fi
 if [[ "${var_relay_open:-no}" == "yes" ]]; then

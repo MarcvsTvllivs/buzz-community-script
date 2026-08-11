@@ -39,7 +39,7 @@
             "type": "warning"
         },
         {
-            "text": "Buzz is used through its desktop app or buzz-cli. Point the client (BUZZ_RELAY_URL) at ws://<container-ip>:3000.",
+            "text": "Buzz is used through its desktop app or buzz-cli. In the app: import the owner key (the recovery file's nsec line), then Add community -> 'Join an existing community' -> ws://<container-ip>:3000 (type the ws:// scheme; bare hostnames are assumed wss). The 'Create' option is Builderlab's hosted service and is not needed for self-hosting.",
             "type": "info"
         },
         {

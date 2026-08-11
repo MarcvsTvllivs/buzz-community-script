@@ -74,11 +74,19 @@ migration leaves the previous binaries in `/usr/local/bin` and the data intact.
 
 ## After first install
 
-1. Import the owner secret key (from `/opt/buzz_data/config/owner-key.txt`, or
-   the key you supplied) into the Buzz desktop app, point it at
-   `ws://<container-ip>:3000`, then delete the recovery file.
-2. Add members: `buzz-admin add-member --pubkey <npub-or-hex>` (inside the container,
-   with `set -a; source /opt/buzz_data/config/buzz.env; set +a` first).
+1. Read the recovery file (`pct exec <ctid> -- cat /opt/buzz_data/config/owner-key.txt`,
+   or use the key you supplied) and paste the **"Secret key (nsec)"** value into the
+   Buzz desktop app's key import. The form accepts bech32 (`nsec1…`) only — raw hex
+   is silently rejected with a greyed-out button.
+2. **Add community → "Join an existing community"** → enter `ws://<container-ip>:3000`.
+   Include the `ws://` scheme — the form assumes `wss://` for bare hostnames. The
+   "Create" option is Builderlab's hosted flow and is not needed for self-hosting:
+   your relay already is a community, and you are its owner.
+3. Once signed in, delete the recovery file:
+   `pct exec <ctid> -- rm /opt/buzz_data/config/owner-key.txt`
+4. Add members: `buzz-admin add-member --pubkey <npub-or-hex>` (inside the container,
+   with `set -a; source /opt/buzz_data/config/buzz.env; set +a` first). Members join
+   with the same URL via the same "Join an existing community" flow.
 
 ## Publishing behind a reverse proxy (later, optional)
 
@@ -90,7 +98,8 @@ reverse-proxy or TLS setup. To publish under a domain: edit
 long read timeouts, and accept bodies ≥ 52 MB (media uploads). **Do it before
 inviting members:** the relay scopes its community by `RELAY_URL`'s hostname and
 answers only under it, so content created under the old authority is orphaned by
-a change.
+a change. Clients then join with the bare domain (the app normalizes it to
+`wss://<domain>`).
 
 ## Status
 
