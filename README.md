@@ -37,7 +37,6 @@ ssh root@<pve-host> 'export TERM=xterm PHS_SILENT=1 mode=default \
   var_ctid=603 var_hostname=buzz \
   var_net=10.13.37.33/24 var_gateway=10.13.37.1 \
   var_container_storage=local-zfs var_template_storage=local \
-  var_domain=buzz.example.com \
   COMMUNITY_SCRIPTS_URL=https://raw.githubusercontent.com/MarcvsTvllivs/buzz-community-script/main; \
   bash <(curl -fsSL https://raw.githubusercontent.com/MarcvsTvllivs/buzz-community-script/main/ct/buzz.sh)'
 ```
@@ -47,13 +46,12 @@ ssh root@<pve-host> 'export TERM=xterm PHS_SILENT=1 mode=default \
 - `COMMUNITY_SCRIPTS_URL` points the engine at this repo for `install/buzz-install.sh`
   when running via curl/tarball (no git origin to detect), and is baked into the
   container's `/usr/bin/update` shim so later `update` runs resolve here too.
-- Omit `var_net`/`var_gateway` for DHCP; omit `var_domain` for plain `ws://<ip>:3000`.
+- Omit `var_net`/`var_gateway` for DHCP.
 
 ### Unattended / preseeded values (`app_vars`)
 
 | Variable | Meaning | Default |
 |---|---|---|
-| `var_domain` | Public domain; you terminate TLS at your own reverse proxy. Sets `RELAY_URL=wss://…`, media URL and CORS accordingly | unset → `ws://<container-ip>:3000` |
 | `var_owner_pubkey` | Your Nostr public key (64-char hex) as community owner | unset → keypair generated into `/opt/buzz_data/config/owner-key.txt` (root-only) |
 | `var_relay_open` | `yes` disables the membership requirement | `no` (closed relay) |
 
@@ -81,6 +79,18 @@ migration leaves the previous binaries in `/usr/local/bin` and the data intact.
    `ws://<container-ip>:3000`, then delete the recovery file.
 2. Add members: `buzz-admin add-member --pubkey <npub-or-hex>` (inside the container,
    with `set -a; source /opt/buzz_data/config/buzz.env; set +a` first).
+
+## Publishing behind a reverse proxy (later, optional)
+
+The installer configures plain `ws://<container-ip>:3000` and deliberately does no
+reverse-proxy or TLS setup. To publish under a domain: edit
+`/opt/buzz_data/config/buzz.env` — its header documents the four URL keys
+(`RELAY_URL=wss://<domain>`, media base/domain, CORS) — then
+`systemctl restart buzz-relay`. Your proxy must pass WebSocket upgrades, allow
+long read timeouts, and accept bodies ≥ 52 MB (media uploads). **Do it before
+inviting members:** the relay scopes its community by `RELAY_URL`'s hostname and
+answers only under it, so content created under the old authority is orphaned by
+a change.
 
 ## Status
 

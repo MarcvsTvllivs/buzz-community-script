@@ -39,7 +39,7 @@
             "type": "warning"
         },
         {
-            "text": "Buzz is used through its desktop app or buzz-cli. Without var_domain, point the client (BUZZ_RELAY_URL) at ws://<container-ip>:3000. With var_domain set, tenancy is host-scoped: the relay answers only under that hostname, so clients must use wss://<domain> through your reverse proxy — bare-IP requests return 404.",
+            "text": "Buzz is used through its desktop app or buzz-cli. Point the client (BUZZ_RELAY_URL) at ws://<container-ip>:3000.",
             "type": "info"
         },
         {
@@ -47,8 +47,8 @@
             "type": "warning"
         },
         {
-            "text": "RELAY_URL is the community's identity authority — changing the domain/IP after first start can re-scope tenant data. Decide the final address (set var_domain for reverse-proxy deployments) before first start.",
-            "type": "warning"
+            "text": "To publish behind your own reverse proxy, edit /opt/buzz_data/config/buzz.env (RELAY_URL=wss://<domain> plus the matching media/CORS URLs — the file's header documents the exact keys) and restart buzz-relay. Do this before inviting members: the relay scopes its community by RELAY_URL's hostname and answers only under it.",
+            "type": "info"
         },
         {
             "text": "PostgreSQL, Redis and MinIO listen on loopback only. The relay's health (8080) and metrics (9102) endpoints bind all container interfaces — firewall them if the container is reachable from untrusted networks. Authenticated web-UI features need HTTPS (secure context); the desktop app works over plain ws:// on a LAN.",
@@ -56,12 +56,6 @@
         }
     ],
     "app_vars": [
-        {
-            "name": "var_domain",
-            "label": "Public domain (TLS terminated at your reverse proxy)",
-            "type": "text",
-            "default": ""
-        },
         {
             "name": "var_owner_pubkey",
             "label": "Owner Nostr public key (64-char hex; generated if empty)",

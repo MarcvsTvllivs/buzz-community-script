@@ -134,17 +134,6 @@ Import the secret key into your Buzz client, verify you can sign in,
 then delete this file. It is not needed by the relay at runtime.
 EOF
 fi
-if [[ -n "${var_domain:-}" ]]; then
-  RELAY_URL="wss://${var_domain}"
-  MEDIA_BASE_URL="https://${var_domain}/media"
-  MEDIA_DOMAIN="${var_domain}"
-  CORS_ORIGINS="https://${var_domain}"
-else
-  RELAY_URL="ws://${LOCAL_IP}:3000"
-  MEDIA_BASE_URL="http://${LOCAL_IP}:3000/media"
-  MEDIA_DOMAIN="${LOCAL_IP}"
-  CORS_ORIGINS="http://${LOCAL_IP}:3000"
-fi
 if [[ "${var_relay_open:-no}" == "yes" ]]; then
   REQUIRE_MEMBERSHIP="false"
 else
@@ -152,17 +141,27 @@ else
 fi
 cat <<EOF >/opt/buzz_data/config/buzz.env
 # Buzz relay configuration — reference: block/buzz deploy/compose/.env.example
-# RELAY_URL is the community's identity authority; changing it later can
-# re-scope tenant data. Pick the final domain before first start.
+#
+# To publish behind a reverse proxy later, set:
+#   RELAY_URL=wss://<domain>
+#   BUZZ_MEDIA_BASE_URL=https://<domain>/media
+#   BUZZ_MEDIA_SERVER_DOMAIN=<domain>
+#   BUZZ_CORS_ORIGINS=https://<domain>
+# then: systemctl restart buzz-relay
+# The proxy must pass WebSocket upgrades, allow long read timeouts (relay
+# connections are long-lived) and client_max_body_size >= 52M (media uploads).
+# Do it BEFORE inviting members: the relay scopes its community by RELAY_URL's
+# hostname and answers only under it — content created under the old authority
+# is orphaned by a change.
 DATABASE_URL=postgres://buzz:${PG_DB_PASS}@127.0.0.1:5432/buzz
 REDIS_URL=redis://:${REDIS_PASS}@127.0.0.1:6379
 BUZZ_BIND_ADDR=0.0.0.0:3000
 BUZZ_HEALTH_PORT=8080
 BUZZ_METRICS_PORT=9102
-RELAY_URL=${RELAY_URL}
-BUZZ_MEDIA_BASE_URL=${MEDIA_BASE_URL}
-BUZZ_MEDIA_SERVER_DOMAIN=${MEDIA_DOMAIN}
-BUZZ_CORS_ORIGINS=${CORS_ORIGINS}
+RELAY_URL=ws://${LOCAL_IP}:3000
+BUZZ_MEDIA_BASE_URL=http://${LOCAL_IP}:3000/media
+BUZZ_MEDIA_SERVER_DOMAIN=${LOCAL_IP}
+BUZZ_CORS_ORIGINS=http://${LOCAL_IP}:3000
 BUZZ_REQUIRE_AUTH_TOKEN=true
 BUZZ_REQUIRE_RELAY_MEMBERSHIP=${REQUIRE_MEMBERSHIP}
 BUZZ_ALLOW_NIP_OA_AUTH=true
