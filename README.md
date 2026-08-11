@@ -110,8 +110,10 @@ a change. Clients then join with the bare domain (the app normalizes it to
 
 - Validated: `bash -n`, ShellCheck, `jq` metadata checks, fixture tests for
   config generation and ct/json agreement (see repo history for the run).
-- **Not yet validated on a real Proxmox host** — no disposable PVE environment
-  was available to the author at build time.
+- **Real-Proxmox verified** (PVE 9.2.10, 2026-08-11): fresh unattended install,
+  reboot persistence, explicit migrations, readiness gate, and WSS through a
+  reverse proxy with valid TLS. Failed-update rollback and vzdump restore not
+  yet exercised.
 - **Not submitted to ProxmoxVED**, deliberately: upstream Buzz (created
   2026-03-06) misses the 6-month project-age gate until 2026-09-06 and
   publishes no server release artifacts (source builds only). Everything else
