@@ -128,10 +128,37 @@ if [[ -z "${var_owner_pubkey:-}" ]]; then
   buzz-admin generate-key >/opt/buzz_data/config/owner-key.txt
   chmod 600 /opt/buzz_data/config/owner-key.txt
   var_owner_pubkey=$(awk '/^Public key:/ {print $3}' /opt/buzz_data/config/owner-key.txt)
+  # The desktop app's key import only accepts bech32 (nsec1…), not the hex
+  # buzz-admin prints — append the converted form (python3 is in the template).
+  awk '/^Secret key:/ {print $3}' /opt/buzz_data/config/owner-key.txt | python3 -c '
+import sys
+data = bytes.fromhex(sys.stdin.read().strip())
+assert len(data) == 32
+CH = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
+def polymod(v):
+    GEN = [0x3B6A57B2, 0x26508E6D, 0x1EA119FA, 0x3D4233DD, 0x2A1462B3]
+    chk = 1
+    for x in v:
+        b = chk >> 25
+        chk = (chk & 0x1FFFFFF) << 5 ^ x
+        for i in range(5):
+            chk ^= GEN[i] if (b >> i) & 1 else 0
+    return chk
+acc = 0; bits = 0; d = []
+for b in data:
+    acc = (acc << 8) | b; bits += 8
+    while bits >= 5:
+        bits -= 5; d.append((acc >> bits) & 31)
+if bits: d.append((acc << (5 - bits)) & 31)
+hrp = [ord(c) >> 5 for c in "nsec"] + [0] + [ord(c) & 31 for c in "nsec"]
+chk = polymod(hrp + d + [0] * 6) ^ 1
+print("nsec1" + "".join(CH[x] for x in d) + "".join(CH[(chk >> 5 * (5 - i)) & 31] for i in range(6)))
+' | sed 's/^/Secret key (nsec): /' >>/opt/buzz_data/config/owner-key.txt
   cat <<EOF >>/opt/buzz_data/config/owner-key.txt
 This keypair owns this Buzz community (RELAY_OWNER_PUBKEY).
-Import the secret key into your Buzz client, verify you can sign in,
-then delete this file. It is not needed by the relay at runtime.
+Paste the "Secret key (nsec)" value into the Buzz desktop app's key import,
+verify you can sign in, then delete this file. It is not needed by the relay
+at runtime.
 EOF
 fi
 if [[ "${var_relay_open:-no}" == "yes" ]]; then
