@@ -1,7 +1,3 @@
-No changes to this fork other than pointing to my own repo for ongoing updating purposes as a security mitigator.
-Thank you to the original creator for this time saving script.
-
-
 # Buzz — Proxmox VE LXC installer (Community Scripts style)
 
 A [community-scripts/ProxmoxVED](https://github.com/community-scripts/ProxmoxVED)-compatible
